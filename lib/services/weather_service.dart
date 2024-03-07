@@ -5,12 +5,25 @@ import 'package:http/http.dart' as http;
 class WeatherService {
   final String apiKey;
   final String baseUrl = 'http://dataservice.accuweather.com/';
-  final String locationUrl = 'locations/v1/cities/geoposition/search';
+  final String locationUrl = 'locations/v1/cities/search';
   final String currentConditionsUrl = 'currentconditions/v1/';
   final String hourlyForecastUrl = 'forecasts/v1/hourly/12hour/';
   final String dailyForecastUrl = 'forecasts/v1/daily/5day/';
 
   WeatherService({required this.apiKey});
+
+  Future<String> getLocationKeyByQuery(String locationQuery) async {
+    final Uri locationUri =
+        Uri.parse('$baseUrl$locationUrl?q=$locationQuery&apikey=$apiKey');
+    final response = await http.get(locationUri);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data[0]['Key'];
+    } else {
+      throw Exception('Failed to fetch location key');
+    }
+  }
 
   Future<String> getLocationKey(double latitude, double longitude) async {
     final Uri locationUri =
@@ -18,8 +31,8 @@ class WeatherService {
     final response = await http.get(locationUri);
 
     if (response.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(response.body);
-      return data['Key'];
+      final List<dynamic> data = json.decode(response.body);
+      return data[0]['Key'];
     } else {
       throw Exception('Failed to fetch location key');
     }
